@@ -51,14 +51,8 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CompressedCookies">
-      <HintPath>..\..\..\..\..\Downloads\-1724526549_CompressedCookie\CompressedCookies\bin\Release\CompressedCookies.dll</HintPath>
-    </Reference>
     <Reference Include="EEAPI">
       <HintPath>..\..\..\..\..\Downloads\EEAPI_1-0\EEAPI.dll</HintPath>
-    </Reference>
-    <Reference Include="Lzma#">
-      <HintPath>..\..\..\..\..\Downloads\-1724526549_CompressedCookie\CompressedCookies\bin\Release\Lzma#.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Threading.Tasks, Version=1.0.12.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <Private>True</Private>
@@ -85,6 +79,10 @@
     <Reference Include="PlayerIOClient, Version=2.3.6.0, Culture=neutral, PublicKeyToken=c7f7b730653f6a44, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\PlayerIOClient-Signed.3.1.0\lib\PlayerIOClient.dll</HintPath>
+    </Reference>
+    <Reference Include="SevenZip.SDK, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SevenZip.SDK.1.0.0\lib\SevenZip.SDK.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

@@ -197,3 +197,4 @@ FakesAssemblies/
 *.chk
 Lobbydb.sln.ide/edbres00001.jrs
 *.jrs
+*.ide
