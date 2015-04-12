@@ -39,7 +39,7 @@ namespace Lobbydb
 
             DownloadLobbyInteveral.Elapsed += DownloadLobby;
 
-            var changeFileNameInterval = new Timer(1000*60*1); // 15 minutes
+            var changeFileNameInterval = new Timer(1000*60*15); // 15 minutes
             changeFileNameInterval.Elapsed += WriteToFileQueue;
 
             // this will create the initial file
