@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -38,7 +39,7 @@ namespace Lobbydb
 
             DownloadLobbyInteveral.Elapsed += DownloadLobby;
 
-            var changeFileNameInterval = new Timer(1000*60*15); // 15 minutes
+            var changeFileNameInterval = new Timer(1000*60*1); // 15 minutes
             changeFileNameInterval.Elapsed += WriteToFileQueue;
 
             // this will create the initial file
@@ -136,10 +137,10 @@ namespace Lobbydb
 
             _sw.Write(Encoding.UTF8.GetString(b));
 
-            /* DECODING: Console.WriteLine(
+           /*Console.WriteLine(
             Encoding.ASCII.GetString(
                 SevenZipHelper.Decompress(
-                    b)));*/
+                    b)).Substring(0,400));*/
 
         }
 
@@ -229,7 +230,12 @@ namespace Lobbydb
                             roomsDone.Add(aRoom);
                         }
                     }
-                    var wrapper = new RoomInfoWrapper {Lobby = playersInLobby};
+                    var wrapper = new RoomInfoWrapper
+                    {
+                        Lobby = playersInLobby,
+                        Date = UtcTime,
+                        Rooms = roomsDone
+                    };
 
                     DataQueue.Add(wrapper);
                 },
