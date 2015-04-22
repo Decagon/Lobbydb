@@ -4,8 +4,6 @@ namespace Lobbydb
 {
     public class RoomInfoWrapper
     {
-        public string Date { get; set; }
-
         public RoomInfoWrapper()
         {
         }
@@ -13,15 +11,15 @@ namespace Lobbydb
         // ReSharper disable once UnusedMember.Global because JsonConvert needs empty constructor for reflection
         // ReSharper disable once UnusedParameter.Local
         // ReSharper disable once UnusedParameter.Local
-        public RoomInfoWrapper(string date, List<RoomInfo> rooms, List<string> lobby )
+        public RoomInfoWrapper(string date, List<RoomInfo> rooms, List<string> lobby)
         {
             Rooms = rooms;
             Date = date;
             Lobby = Lobby;
         }
 
-        public List<string> Lobby { get;  set; }
-
+        public string Date { get; set; }
+        public List<string> Lobby { get; set; }
         public List<RoomInfo> Rooms { get; set; }
     }
 }

@@ -51,9 +51,6 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EEAPI">
-      <HintPath>..\..\..\..\..\Downloads\EEAPI_1-0\EEAPI.dll</HintPath>
-    </Reference>
     <Reference Include="Lzma#">
       <HintPath>.\Lzma#.dll</HintPath>
     </Reference>

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -10,8 +9,8 @@ using System.Timers;
 using Newtonsoft.Json;
 using NodaTime;
 using PlayerIOClient;
-using SevenZip.Compression.LZMA;
 using Timer = System.Timers.Timer;
+using SevenZip.Compression.LZMA;
 
 namespace Lobbydb
 {
@@ -79,7 +78,7 @@ namespace Lobbydb
 
         private static void WriteToFileQueue(object sender, ElapsedEventArgs e)
         {
-            WriteToFileQueue(null,null,false);
+            WriteToFileQueue(null, null, false);
         }
 
         // ReSharper disable once InconsistentNaming
@@ -124,6 +123,7 @@ namespace Lobbydb
             }
             ChangeFileNameWaitHandle.WaitOne(); // wait when the file name is being changed
             var bufferedData = new RoomInfoWrapper[JsonDataQueue.Count];
+
             lock (JsonDataQueue)
             {
                 JsonDataQueue.CopyTo(bufferedData, 0);
@@ -137,11 +137,10 @@ namespace Lobbydb
 
             _sw.Write(Encoding.UTF8.GetString(b));
 
-           /*Console.WriteLine(
+            /*Console.WriteLine(
             Encoding.ASCII.GetString(
                 SevenZipHelper.Decompress(
                     b)).Substring(0,400));*/
-
         }
 
         //http://stackoverflow.com/questions/472906
@@ -153,7 +152,6 @@ namespace Lobbydb
             Buffer.BlockCopy(bytes, 0, chars, 0, bytes.Length);
             return new string(chars);
         }
-
 
         //http://stackoverflow.com/questions/8001133
         private static void Clear<T>(this BlockingCollection<T> blockingCollection)
@@ -200,44 +198,39 @@ namespace Lobbydb
                     var playersInLobby = new List<string>();
                     var roomsDone = new List<RoomInfo>();
 
-                    for (var i = 0; i < rooms.Length; i++)
+                    foreach (var room in rooms)
                     {
                         string plays;
                         string rating;
                         string name;
                         string woots;
-                        rooms[i].RoomData.TryGetValue("plays", out plays);
-                        rooms[i].RoomData.TryGetValue("rating", out rating);
-                        rooms[i].RoomData.TryGetValue("name", out name);
-                        rooms[i].RoomData.TryGetValue("woots", out woots);
-                        RoomInfo aRoom = null;
-                        if (!rooms[i].RoomType.Contains("Lobby"))
+                        room.RoomData.TryGetValue("plays", out plays);
+                        room.RoomData.TryGetValue("rating", out rating);
+                        room.RoomData.TryGetValue("name", out name);
+                        room.RoomData.TryGetValue("woots", out woots);
+
+                        if (!room.RoomType.StartsWith("Lobby"))
                         {
-                            aRoom = new RoomInfo(
-                                rooms[i].Id,
-                                rooms[i].OnlineUsers,
+                            var aRoom = new RoomInfo(
+                                room.Id,
+                                room.OnlineUsers,
                                 Convert.ToInt32(plays),
                                 name,
                                 Convert.ToInt32(woots));
+                            roomsDone.Add(aRoom);
                         }
                         else
                         {
-                            playersInLobby.Add(rooms[i].Id);
-                        }
-
-                        if (rooms[i].RoomType.Contains("Everybodyedits"))
-                        {
-                            roomsDone.Add(aRoom);
+                            playersInLobby.Add(room.Id);
                         }
                     }
-                    var wrapper = new RoomInfoWrapper
+
+                    DataQueue.Add(new RoomInfoWrapper
                     {
                         Lobby = playersInLobby,
                         Date = UtcTime,
                         Rooms = roomsDone
-                    };
-
-                    DataQueue.Add(wrapper);
+                    });
                 },
                 PrintPlayerIOError);
         }
