@@ -27,10 +27,12 @@ namespace Lobbydb
             RoomInfoWrapper>();
 
         private static readonly ManualResetEvent ChangeFileNameWaitHandle = new ManualResetEvent(true);
-        private static readonly Timer DownloadLobbyInteveral = new Timer(1000);
+        private static readonly Timer DownloadLobbyInteveral = new Timer(3000);
         // ReSharper disable once FieldCanBeMadeReadOnly.Local
         private static string UtcTime { get; } = GetUtcTime();
 
+        public static HashSet<string> unique_user_ids = new HashSet<string>();
+        public static HashSet<string> roomsDone = new HashSet<string>();
         private static void Main()
         {
             Console.WriteLine("Lobby snapshoter has started. Press any key to quit.");
@@ -38,7 +40,7 @@ namespace Lobbydb
 
             DownloadLobbyInteveral.Elapsed += DownloadLobby;
 
-            var changeFileNameInterval = new Timer(1000*60*15); // 15 minutes
+            var changeFileNameInterval = new Timer(1000*60*5); // 15 minutes
             changeFileNameInterval.Elapsed += WriteToFileQueue;
 
             // this will create the initial file
@@ -70,10 +72,14 @@ namespace Lobbydb
 
             _globalClient.Logout();
             fileWriterCancellationTokenSource.Cancel();
-
-            _sw.Flush();
-            _sw.Close();
-            _sw.Dispose();
+            try {
+                _sw.Flush();
+                _sw.Close();
+                _sw.Dispose();
+            } catch (Exception)
+            {
+                // may have already been disposed of in another thread
+            }
         }
 
         private static void WriteToFileQueue(object sender, ElapsedEventArgs e)
@@ -122,20 +128,22 @@ namespace Lobbydb
                 ChangeFileName();
             }
             ChangeFileNameWaitHandle.WaitOne(); // wait when the file name is being changed
-            var bufferedData = new RoomInfoWrapper[JsonDataQueue.Count];
-
-            lock (JsonDataQueue)
+          lock (unique_user_ids)
             {
-                JsonDataQueue.CopyTo(bufferedData, 0);
-                JsonDataQueue.Clear();
+                lock (roomsDone)
+                {
+                    try {
+                        _sw.WriteLine(JsonConvert.SerializeObject(unique_user_ids));
+                        _sw.WriteLine(JsonConvert.SerializeObject(roomsDone));
+                        unique_user_ids.Clear();
+                        roomsDone.Clear();
+                    } catch (Exception)
+                    {
+                        // not sure; null ref exception
+                    }
+                }
             }
-
-            var utf8Text = JsonConvert.SerializeObject(bufferedData);
-            var byteText = Encoding.ASCII.GetBytes(utf8Text);
-
-            var b = SevenZipHelper.Compress(byteText);
-
-            _sw.Write(Encoding.UTF8.GetString(b));
+            
 
             /*Console.WriteLine(
             Encoding.ASCII.GetString(
@@ -196,28 +204,23 @@ namespace Lobbydb
                 delegate(PlayerIOClient.RoomInfo[] rooms)
                 {
                     var playersInLobby = new List<string>();
-                    var roomsDone = new List<RoomInfo>();
-
+                    
+                    
                     foreach (var room in rooms)
                     {
-                        string plays;
-                        string rating;
-                        string name;
-                        string woots;
-                        room.RoomData.TryGetValue("plays", out plays);
-                        room.RoomData.TryGetValue("rating", out rating);
-                        room.RoomData.TryGetValue("name", out name);
-                        room.RoomData.TryGetValue("woots", out woots);
-
+                        if (room.Id.StartsWith("simple") || room.Id.StartsWith("kong") || room.Id.StartsWith("fb"))
+                        {
+                            unique_user_ids.Add(room.Id);
+                        }
+                        
                         if (!room.RoomType.StartsWith("Lobby"))
                         {
-                            var aRoom = new RoomInfo(
-                                room.Id,
-                                room.OnlineUsers,
-                                Convert.ToInt32(plays),
-                                name,
-                                Convert.ToInt32(woots));
-                            roomsDone.Add(aRoom);
+                            if (room.Id.StartsWith("PW") || room.Id.StartsWith("BW"))
+                            {
+                                roomsDone.Add(room.Id);
+                                //Console.WriteLine(JsonConvert.SerializeObject(aRoom));
+                            }
+                            
                         }
                         else
                         {
@@ -225,12 +228,6 @@ namespace Lobbydb
                         }
                     }
 
-                    DataQueue.Add(new RoomInfoWrapper
-                    {
-                        Lobby = playersInLobby,
-                        Date = UtcTime,
-                        Rooms = roomsDone
-                    });
                 },
                 PrintPlayerIOError);
         }
