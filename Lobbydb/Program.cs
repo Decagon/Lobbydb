@@ -32,7 +32,7 @@ namespace Lobbydb
         private static string UtcTime { get; } = GetUtcTime();
 
         public static HashSet<string> unique_user_ids = new HashSet<string>();
-        public static HashSet<string> roomsDone = new HashSet<string>();
+        public static List<RoomInfo> roomsDone = new List<RoomInfo>();
         private static void Main()
         {
             Console.WriteLine("Lobby snapshoter has started. Press any key to quit.");
@@ -40,7 +40,7 @@ namespace Lobbydb
 
             DownloadLobbyInteveral.Elapsed += DownloadLobby;
 
-            var changeFileNameInterval = new Timer(1000*60*5); // 15 minutes
+            var changeFileNameInterval = new Timer(1000*7); // 15 minutes
             changeFileNameInterval.Elapsed += WriteToFileQueue;
 
             // this will create the initial file
@@ -133,8 +133,9 @@ namespace Lobbydb
                 lock (roomsDone)
                 {
                     try {
-                        _sw.WriteLine(JsonConvert.SerializeObject(unique_user_ids));
-                        _sw.WriteLine(JsonConvert.SerializeObject(roomsDone));
+                        var dataToWrite = new Dictionary<string, RoomInfo>();
+                        dataToWrite.Add("date", roomsDone);
+                        _sw.WriteLine(JsonConvert.SerializeObject(new Dictionary<string, RoomInfo>() { "date", roomsDone }));
                         unique_user_ids.Clear();
                         roomsDone.Clear();
                     } catch (Exception)
@@ -143,12 +144,7 @@ namespace Lobbydb
                     }
                 }
             }
-            
-
-            /*Console.WriteLine(
-            Encoding.ASCII.GetString(
-                SevenZipHelper.Decompress(
-                    b)).Substring(0,400));*/
+        
         }
 
         //http://stackoverflow.com/questions/472906
@@ -208,19 +204,32 @@ namespace Lobbydb
                     
                     foreach (var room in rooms)
                     {
-                        if (room.Id.StartsWith("simple") || room.Id.StartsWith("kong") || room.Id.StartsWith("fb"))
-                        {
-                            unique_user_ids.Add(room.Id);
-                        }
-                        
                         if (!room.RoomType.StartsWith("Lobby"))
                         {
-                            if (room.Id.StartsWith("PW") || room.Id.StartsWith("BW"))
+                            if (room.Id.StartsWith("PW") || room.Id.StartsWith("BW") || room.Id.StartsWith("OW"))
                             {
-                                roomsDone.Add(room.Id);
-                                //Console.WriteLine(JsonConvert.SerializeObject(aRoom));
+
+                                string plays;
+                                string rating;
+                                string name;
+                                string woots;
+                                room.RoomData.TryGetValue("plays", out plays);
+                                room.RoomData.TryGetValue("rating", out rating);
+                                room.RoomData.TryGetValue("name", out name);
+                                room.RoomData.TryGetValue("woots", out woots);
+
+                                var aRoom = new RoomInfo(
+                                    room.Id,
+                                    room.OnlineUsers,
+                                    Convert.ToInt32(plays),
+                                    name,
+                                    Convert.ToInt32(woots));
+                                var aRoomWrapped = new RoomInfoWrapper();
+                                aRoomWrapped.Rooms = aRoom;
+                                aRoomWrapped.Date = "datehere";
+
+                                roomsDone.Add(aRoom);
                             }
-                            
                         }
                         else
                         {
