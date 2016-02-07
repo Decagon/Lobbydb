@@ -16,7 +16,6 @@ namespace Lobbydb
         private static Client _globalClient;
 
         public static List<RoomInfo> roomsDone = new List<RoomInfo>();
-        private static readonly int DOWNLOAD_INTERVAL_SECONDS = 5*1000;
 
         private static CancellationTokenSource cancelToken = new CancellationTokenSource();
         private static void Main()
@@ -27,8 +26,7 @@ namespace Lobbydb
                 _globalClient = client;
                     if (_globalClient.ConnectUserId != null)
                     {
-                        DownloadLobby();
-                        //Console.WriteLine(JsonConvert.SerializeObject(rooms));     
+                        DownloadLobby();    
                 }
                 waitHandle.Set();
             });
